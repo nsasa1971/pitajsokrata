@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { openai, SOKRAT_SYSTEM_PROMPT, OPENAI_MODEL } from "@/utils/openai";
 import { createClient } from "@/utils/supabase/server";
+import { openai, SOKRAT_SYSTEM_PROMPT, OPENAI_MODEL } from "@/utils/openai";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
