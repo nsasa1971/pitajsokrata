@@ -6,7 +6,6 @@ import { createClient } from "@/utils/supabase/client";
 import Sidebar from "@/components/Sidebar";
 import type { User } from "@supabase/supabase-js";
 import type { Message } from "@/types";
-import { MAX_FREE_TURNS } from "@/utils/env";
 
 export default function ChatPage() {
   const router = useRouter();
