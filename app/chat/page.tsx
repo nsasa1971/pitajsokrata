@@ -85,10 +85,10 @@ export default function ChatPage() {
   const canSend = () => {
     if (loading) return false;
     if (user) return true;
-    return dailyTurnsUsed < MAX_FREE_TURNS;
+    return dailyTurnsUsed < 3;
   };
 
-  const turnsRemaining = user ? -1 : Math.max(0, MAX_FREE_TURNS - dailyTurnsUsed);
+  const turnsRemaining = user ? -1 : Math.max(0, 3 - dailyTurnsUsed);
 
   const handleCopy = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
