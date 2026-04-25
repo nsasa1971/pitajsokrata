@@ -2,10 +2,10 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/utils/supabase/client";
-import Sidebar from "@/components/Sidebar";
+import { createClient } from "../utils/supabase/client";
+import Sidebar from "../components/Sidebar";
 import type { User } from "@supabase/supabase-js";
-import type { Message } from "@/types";
+import type { Message } from "../types";
 
 export default function ChatPage() {
   const router = useRouter();

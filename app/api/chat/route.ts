@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/utils/supabase/server";
-import { openai, SOKRAT_SYSTEM_PROMPT, OPENAI_MODEL } from "@/utils/openai";
+import { createClient } from "../../utils/supabase/server";
+import { openai, SOKRAT_SYSTEM_PROMPT, OPENAI_MODEL } from "../../utils/openai";
 
 export async function POST(request: Request) {
   try {
