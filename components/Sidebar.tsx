@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/utils/supabase/client";
 import type { User } from "@supabase/supabase-js";
 
-interface SessionGroup {
+interface Session {
   id: string;
   first_message: string;
   created_at: string;
@@ -20,75 +20,47 @@ interface Props {
 }
 
 export default function Sidebar({ user, onSelectSession, onNewChat, currentSessionId }: Props) {
-  const [sessions, setSessions] = useState<SessionGroup[]>([]);
+  const [sessions, setSessions] = useState<Session[]>([]);
   const [collapsed, setCollapsed] = useState(false);
   const supabase = createClient();
 
   const loadSessions = useCallback(async () => {
     if (!user) return;
 
-    // Grupiši po session_group (prvoj poruci sesije)
     const { data } = await supabase
       .from("chat_sessions")
-      .select("id, session_group, message_user, created_at, turn_number, is_final")
+      .select("id, message_user, created_at, turn_number, is_final")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
 
     if (data) {
-      // Grupiši ručno - svaka sesija je grupisana po session_group
-      const groups: Record<string, SessionGroup> = {};
-      
-      data.forEach((row: any) => {
-        const groupId = row.session_group || row.id;
-        if (!groups[groupId] || row.turn_number === 1) {
-          groups[groupId] = {
-            id: groupId,
-            first_message: row.message_user?.substring(0, 60) || "Nova sesija",
-            created_at: row.created_at,
-            last_turn: row.turn_number || 0,
-            is_final: row.is_final || false,
-          };
-        }
-      });
-
-      setSessions(Object.values(groups).sort((a, b) => 
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      ));
+      setSessions(
+        data.map((s: any) => ({
+          id: s.id,
+          first_message: s.message_user?.substring(0, 60) || "Nova sesija",
+          created_at: s.created_at,
+          last_turn: s.turn_number || 0,
+          is_final: s.is_final || false,
+        }))
+      );
     }
   }, [user, supabase]);
 
   useEffect(() => {
-    if (user) {
-      loadSessions();
-    }
+    if (user) loadSessions();
   }, [user, loadSessions]);
 
-  // Osveži kad se promeni sesija
-  useEffect(() => {
-    if (user && currentSessionId) {
-      loadSessions();
-    }
-  }, [currentSessionId, user, loadSessions]);
-
   const handleDelete = async (id: string, e: React.MouseEvent) => {
-  e.stopPropagation();
-  
-  // Briši sve poruke u ovoj sesiji
-  await supabase.from("chat_sessions").delete().eq("session_group", id);
-  // Briši i prvu poruku (koja ima id = session_group)
-  await supabase.from("chat_sessions").delete().eq("id", id);
-  
-  loadSessions();
-  if (currentSessionId === id) {
-    onNewChat();
-  }
-};
+    e.stopPropagation();
+    await supabase.from("chat_sessions").delete().eq("id", id);
+    loadSessions();
+    if (currentSessionId === id) onNewChat();
+  };
 
   if (!user) return null;
 
   return (
     <>
-      {/* Mobile overlay */}
       {!collapsed && (
         <div
           className="fixed inset-0 bg-black/50 z-20 lg:hidden"
@@ -96,7 +68,6 @@ export default function Sidebar({ user, onSelectSession, onNewChat, currentSessi
         />
       )}
 
-      {/* Sidebar */}
       <div
         className={`fixed lg:relative z-30 h-screen bg-[#0d0d0f] border-r border-gray-800/50 transition-all duration-300 flex flex-col ${
           collapsed ? "w-0 overflow-hidden lg:w-14" : "w-64 lg:w-72"
