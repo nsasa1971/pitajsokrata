@@ -19,6 +19,7 @@ export async function POST(request: Request) {
     // Za registrovane korisnike
     if (userId && userId !== "anonymous") {
       if (!currentSessionId) {
+        // Nova sesija - kreiraj placeholder
         const { data: newSession } = await supabase
           .from("chat_sessions")
           .insert({
@@ -33,10 +34,11 @@ export async function POST(request: Request) {
 
         if (newSession) currentSessionId = newSession.id;
       } else {
+        // Postojeća sesija - dohvati turn
         const { data: sessionData } = await supabase
           .from("chat_sessions")
           .select("turn_number")
-          .eq("id", currentSessionId)
+          .eq("session_group", currentSessionId)
           .order("created_at", { ascending: false })
           .limit(1)
           .single();
@@ -62,90 +64,67 @@ export async function POST(request: Request) {
     const aiResponse = completion.choices[0].message.content;
     if (!aiResponse) throw new Error("Nema odgovora od OpenAI-ja");
 
-    // Parsiraj odgovor
-    let parsed: { message: string; turn_number: number; is_final: boolean; insights: string[] };
-    
+    // Parsiraj odgovor - izvuci cist tekst
+    let messageText = aiResponse;
+    let turnNumber = turnsInSession + 1;
+    let isFinal = false;
+    let insights: string[] = [];
+
     try {
-      parsed = JSON.parse(aiResponse);
-
-      // Ako message sadrži ugnježdeni JSON - izvuci ga
-      if (parsed.message && parsed.message.includes('"message"')) {
-        try {
-          const inner = JSON.parse(parsed.message);
-          if (inner.message) {
-            parsed.message = inner.message;
-            parsed.turn_number = inner.turn_number || parsed.turn_number;
-            parsed.is_final = inner.is_final !== undefined ? inner.is_final : parsed.is_final;
-            parsed.insights = inner.insights || parsed.insights;
-          }
-        } catch {
-          // Ako ne može da parsira, ostavi kako jeste
-        }
-      }
-
-      if (!parsed.turn_number) parsed.turn_number = turnsInSession + 1;
-      if (parsed.is_final === undefined) parsed.is_final = parsed.turn_number >= 10;
-      if (!parsed.insights) parsed.insights = [];
-    } catch {
-      // Ako ceo odgovor nije JSON, koristi ga kao tekst
-      let cleanMessage = aiResponse;
+      const parsed = JSON.parse(aiResponse);
       
-      // Pokušaj da izvučeš čist tekst iz bilo kakvog JSON-a u stringu
-      try {
-        const obj = JSON.parse(aiResponse);
-        if (obj.message) cleanMessage = obj.message;
-      } catch {
-        // Nije JSON, koristi ceo tekst
+      if (parsed.message) {
+        // Proveri da li message sadrzi ugnjezdeni JSON
+        if (typeof parsed.message === "string" && parsed.message.includes('"message"')) {
+          try {
+            const inner = JSON.parse(parsed.message);
+            messageText = inner.message || parsed.message;
+            turnNumber = inner.turn_number || parsed.turn_number || turnNumber;
+            isFinal = inner.is_final !== undefined ? inner.is_final : false;
+            insights = inner.insights || [];
+          } catch {
+            messageText = parsed.message;
+          }
+        } else {
+          messageText = parsed.message;
+        }
+        
+        turnNumber = parsed.turn_number || turnNumber;
+        isFinal = parsed.is_final !== undefined ? parsed.is_final : turnNumber >= 10;
+        insights = parsed.insights || [];
       }
-
-      const t = turnsInSession + 1;
-      parsed = {
-        message: cleanMessage,
-        turn_number: t,
-        is_final: t >= 10,
-        insights: t >= 10 ? ["Sesija završena."] : [],
-      };
+    } catch {
+      // Nije JSON, koristi ceo tekst
+      messageText = aiResponse;
+      isFinal = turnNumber >= 10;
     }
 
     // Sačuvaj u bazu za registrovane
     if (userId && userId !== "anonymous" && currentSessionId) {
-      const { data: firstMsg } = await supabase
+      // Obriši placeholder (praznu prvu poruku)
+      await supabase
         .from("chat_sessions")
-        .select("id, message_sokrat")
+        .delete()
         .eq("id", currentSessionId)
-        .single();
+        .is("message_sokrat", "");
 
-      if (firstMsg && !firstMsg.message_sokrat) {
-        // Prvi odgovor - ažuriraj postojeći red
-        await supabase
-          .from("chat_sessions")
-          .update({
-            message_sokrat: parsed.message,
-            turn_number: parsed.turn_number,
-            insights: parsed.is_final ? parsed.insights : null,
-            is_final: parsed.is_final,
-            session_group: currentSessionId,
-          })
-          .eq("id", currentSessionId);
-      } else {
-        // Novi red
-        await supabase.from("chat_sessions").insert({
-          user_id: userId,
-          session_group: currentSessionId,
-          message_user: messages[messages.length - 1].content,
-          message_sokrat: parsed.message,
-          turn_number: parsed.turn_number,
-          insights: parsed.is_final ? parsed.insights : null,
-          is_final: parsed.is_final,
-        });
-      }
+      // Dodaj novu poruku
+      await supabase.from("chat_sessions").insert({
+        user_id: userId,
+        session_group: currentSessionId,
+        message_user: messages[messages.length - 1].content,
+        message_sokrat: messageText,
+        turn_number: turnNumber,
+        insights: isFinal ? insights : null,
+        is_final: isFinal,
+      });
     }
 
     return NextResponse.json({
-      message: parsed.message,
-      turn_number: parsed.turn_number,
-      is_final: parsed.is_final,
-      insights: parsed.insights || [],
+      message: messageText,
+      turn_number: turnNumber,
+      is_final: isFinal,
+      insights: insights,
       sessionId: currentSessionId,
     });
   } catch (error: unknown) {
