@@ -71,14 +71,18 @@ export default function Sidebar({ user, onSelectSession, onNewChat, currentSessi
   }, [currentSessionId, user, loadSessions]);
 
   const handleDelete = async (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    await supabase.from("chat_sessions").delete().eq("session_group", id);
-    await supabase.from("chat_sessions").delete().eq("id", id);
-    loadSessions();
-    if (currentSessionId === id) {
-      onNewChat();
-    }
-  };
+  e.stopPropagation();
+  
+  // Briši sve poruke u ovoj sesiji
+  await supabase.from("chat_sessions").delete().eq("session_group", id);
+  // Briši i prvu poruku (koja ima id = session_group)
+  await supabase.from("chat_sessions").delete().eq("id", id);
+  
+  loadSessions();
+  if (currentSessionId === id) {
+    onNewChat();
+  }
+};
 
   if (!user) return null;
 
