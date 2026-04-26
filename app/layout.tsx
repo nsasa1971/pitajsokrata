@@ -47,8 +47,19 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏛️</text></svg>",
-  },
+  icon: [
+    {
+      url: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23f59e0b'/><text y='24' font-size='22' text-anchor='middle' x='16' fill='white' font-family='serif' font-weight='bold'>S</text></svg>",
+      type: "image/svg+xml",
+      sizes: "32x32",
+    },
+    {
+      url: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' rx='4' fill='%23f59e0b'/><text y='12.5' font-size='12' text-anchor='middle' x='8' fill='white' font-family='serif' font-weight='bold'>S</text></svg>",
+      type: "image/svg+xml",
+      sizes: "16x16",
+    },
+  ],
+},
 };
 
 export default function RootLayout({
