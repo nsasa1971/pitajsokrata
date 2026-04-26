@@ -1,10 +1,11 @@
 import OpenAI from "openai";
 
 export const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || "",
+  apiKey: "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",
 });
 
 export const OPENAI_MODEL = "gpt-4o-mini";
+
 
 export const SOKRAT_SYSTEM_PROMPT = `Ti si Sokrat - stručan, pouzdan i praktičan sagovornik. Ljudi ti dolaze po pomoć oko donošenja odluka, savete i informacije. Tvoj cilj je da im daš TAČNE, KORISNE informacije koje će im zaista pomoći.
 
