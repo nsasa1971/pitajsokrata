@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     // Za registrovane korisnike - kreiraj novu sesiju ako nema
     if (userId && userId !== "anonymous") {
       if (!currentSessionId) {
-        // Kreiraj novu sesiju
+        // Nova sesija
         const { data: newSession } = await supabase
           .from("chat_sessions")
           .insert({
@@ -37,15 +37,15 @@ export async function POST(request: Request) {
         }
       } else {
         // Dobavi trenutni turn
-        const { data: sessionData } = await supabase
+        const { data: lastMsg } = await supabase
           .from("chat_sessions")
           .select("turn_number")
-          .eq("id", currentSessionId)
+          .eq("session_group", currentSessionId)
           .order("created_at", { ascending: false })
           .limit(1)
           .single();
 
-        turnsInSession = sessionData?.turn_number || 0;
+        turnsInSession = lastMsg?.turn_number || 0;
       }
     }
 
@@ -75,20 +75,47 @@ export async function POST(request: Request) {
       if (!parsed.insights) parsed.insights = [];
     } catch {
       const t = turnsInSession + 1;
-      parsed = { message: aiResponse, turn_number: t, is_final: t >= 10, insights: t >= 10 ? ["Sesija završena."] : [] };
+      parsed = {
+        message: aiResponse,
+        turn_number: t,
+        is_final: t >= 10,
+        insights: t >= 10 ? ["Sesija završena."] : [],
+      };
     }
 
-    // Sačuvaj poruku u bazu za registrovane
+    // Sačuvaj u bazu za registrovane
     if (userId && userId !== "anonymous" && currentSessionId) {
-      await supabase.from("chat_sessions").insert({
-        user_id: userId,
-        session_group: currentSessionId,
-        message_user: messages[messages.length - 1].content,
-        message_sokrat: parsed.message,
-        turn_number: parsed.turn_number,
-        insights: parsed.is_final ? parsed.insights : null,
-        is_final: parsed.is_final,
-      });
+      // Prva poruka u sesiji - ažuriraj postojeći red
+      const { data: firstRow } = await supabase
+        .from("chat_sessions")
+        .select("id, message_sokrat")
+        .eq("id", currentSessionId)
+        .single();
+
+      if (firstRow && !firstRow.message_sokrat) {
+        // Ovo je prvi odgovor - ažuriraj
+        await supabase
+          .from("chat_sessions")
+          .update({
+            message_sokrat: parsed.message,
+            turn_number: parsed.turn_number,
+            insights: parsed.is_final ? parsed.insights : null,
+            is_final: parsed.is_final,
+            session_group: currentSessionId,
+          })
+          .eq("id", currentSessionId);
+      } else {
+        // Dodaj novi red
+        await supabase.from("chat_sessions").insert({
+          user_id: userId,
+          session_group: currentSessionId,
+          message_user: messages[messages.length - 1].content,
+          message_sokrat: parsed.message,
+          turn_number: parsed.turn_number,
+          insights: parsed.is_final ? parsed.insights : null,
+          is_final: parsed.is_final,
+        });
+      }
     }
 
     return NextResponse.json({
