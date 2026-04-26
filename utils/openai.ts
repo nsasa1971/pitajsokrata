@@ -1,8 +1,7 @@
 import OpenAI from "openai";
 
 export const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || "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",
-});
+  aapiKey: process.env.OPENAI_API_KEY || "",
 
 export const OPENAI_MODEL = "gpt-4o-mini";
 
