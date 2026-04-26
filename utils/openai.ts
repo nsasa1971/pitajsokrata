@@ -1,7 +1,8 @@
 import OpenAI from "openai";
 
 export const openai = new OpenAI({
-  aapiKey: process.env.OPENAI_API_KEY || "",
+  apiKey: process.env.OPENAI_API_KEY || "",
+});
 
 export const OPENAI_MODEL = "gpt-4o-mini";
 
