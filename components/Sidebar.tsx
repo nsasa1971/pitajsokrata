@@ -136,11 +136,11 @@ export default function Sidebar({ user, onSelectSession, onNewChat, currentSessi
 
       {collapsed && (
         <button
-          onClick={() => setCollapsed(false)}
-          className="fixed lg:relative z-30 top-4 left-4 lg:left-0 bg-[#0d0d0f] border border-gray-800/50 rounded-xl p-2 text-gray-400 hover:text-white"
-        >
-          ☰
-        </button>
+  onClick={() => setCollapsed(!collapsed)}
+  className="lg:hidden text-gray-400 hover:text-white p-2 -mr-2"
+>
+  ☰
+</button>
       )}
     </>
   );
