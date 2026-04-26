@@ -4,18 +4,22 @@ export default function Home() {
   return (
     <main className="min-h-screen flex flex-col items-center justify-center px-5 py-12 bg-[#0a0a0b]">
       <div className="max-w-lg w-full text-center space-y-6">
+        {/* Logo */}
         <div className="text-6xl sm:text-7xl mb-2">🏛️</div>
 
+        {/* Naslov */}
         <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight text-white leading-tight">
           Ne treba ti još jedan savet.
         </h1>
 
+        {/* Podnaslov */}
         <p className="text-base sm:text-xl text-gray-400 max-w-md mx-auto leading-relaxed">
           Treba ti neko ko ume da sluša.
           <br />
           <span className="text-gray-500">I ko postavlja prava pitanja.</span>
         </p>
 
+        {/* CTA dugmad */}
         <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
           <Link
             href="/chat"
@@ -31,12 +35,14 @@ export default function Home() {
           </Link>
         </div>
 
+        {/* Info */}
         <div className="pt-6 space-y-1.5">
           <p className="text-gray-500 text-xs sm:text-sm">✦ 3 razgovora dnevno besplatno</p>
           <p className="text-gray-500 text-xs sm:text-sm">✦ Bez registracije za prvi utisak</p>
           <p className="text-gray-500 text-xs sm:text-sm">✦ Potpuno privatno</p>
         </div>
 
+        {/* Citat */}
         <blockquote className="pt-6 mt-6 border-t border-gray-800/50">
           <p className="text-gray-500 italic text-sm sm:text-base leading-relaxed px-4">
             "Razgovarao sam sa AI-jem 20 minuta i shvatio da sam znao odgovor sve vreme."
@@ -45,8 +51,39 @@ export default function Home() {
         </blockquote>
       </div>
 
+      {/* Zašto PitajSokrata.com */}
+      <section className="pt-20 pb-8 max-w-3xl mx-auto text-center px-4">
+        <h2 className="text-2xl sm:text-3xl font-bold text-white mb-8">
+          Zašto PitajSokrata.com?
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 text-left">
+          <div className="bg-[#0d0d0f] border border-gray-800/50 rounded-2xl p-5">
+            <span className="text-3xl mb-3 block">🎯</span>
+            <h3 className="font-semibold text-white mb-2">Konkretni odgovori</h3>
+            <p className="text-gray-400 text-sm leading-relaxed">
+              Bez uvijanja i filozofiranja. Praktični saveti koje možeš odmah primeniti.
+            </p>
+          </div>
+          <div className="bg-[#0d0d0f] border border-gray-800/50 rounded-2xl p-5">
+            <span className="text-3xl mb-3 block">🔒</span>
+            <h3 className="font-semibold text-white mb-2">Potpuno privatno</h3>
+            <p className="text-gray-400 text-sm leading-relaxed">
+              Tvoji razgovori su samo tvoji. Ne delimo podatke sa trećim licima.
+            </p>
+          </div>
+          <div className="bg-[#0d0d0f] border border-gray-800/50 rounded-2xl p-5">
+            <span className="text-3xl mb-3 block">⚡</span>
+            <h3 className="font-semibold text-white mb-2">Dostupan 24/7</h3>
+            <p className="text-gray-400 text-sm leading-relaxed">
+              Kad god ti treba razgovor, savet ili podrška – Sokrat je tu.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
       <footer className="mt-auto pt-12 pb-4 text-gray-600 text-xs text-center">
-        © {new Date().getFullYear()} PitajSokrata.com
+        © {new Date().getFullYear()} PitajSokrata.com – Sokratov metod za digitalno doba
       </footer>
     </main>
   );
